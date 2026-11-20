@@ -1,0 +1,129 @@
+# =============================================================================
+# config.yaml — inputs, output folders and parameters of the pipeline
+#
+# Input paths are ours, as examples: replace each with the path on your system.
+# Parameters are those of the paper; Methods sections are given in brackets.
+# =============================================================================
+
+
+# ── Reference genome [Alignment] ─────────────────────────────────────────────
+# The reference is the C57BL/6J T2T assembly (C57BL_6J_T2T_v1, GenBank
+# GCA_964188535.1) with chromosomes X, Y and MT of GRCm39 added
+# (workflow/rules/reference.smk).
+reference:
+  # T2T assembly FASTA (gunzip after download) and its assembly report:
+  #   https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/964/188/535/GCA_964188535.1_C57BL_6J_T2T_v1/
+  #     GCA_964188535.1_C57BL_6J_T2T_v1_genomic.fna.gz
+  #     GCA_964188535.1_C57BL_6J_T2T_v1_assembly_report.txt
+  t2t_fasta:           /insomnia001/depts/pas_lab/projects/mice_neurons/T2T_ref_genome/GCA_964188535.1_C57BL_6J_T2T_v1_genomic.fna
+  t2t_assembly_report: /insomnia001/depts/pas_lab/projects/mice_neurons/T2T_ref_genome/GCA_964188535.1_C57BL_6J_T2T_v1_assembly_report.txt
+
+  # GRCm39 FASTA, Ensembl chromosome names (1..19, X, Y, MT), gunzip after download:
+  #   https://ftp.ensembl.org/pub/release-112/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz
+  grcm39_fasta: /insomnia001/depts/pas_lab/projects/mice_neurons/ref_genome/mm39.fa
+
+  # RepeatMasker annotation of the T2T assembly (UCSC GenArk hub):
+  #   https://hgdownload.soe.ucsc.edu/hubs/GCA/964/188/535/GCA_964188535.1/GCA_964188535.1.repeatMasker.out.gz
+  repeatmasker: /insomnia001/depts/pas_lab/projects/mice_neurons/T2T_ref_genome/GCA_964188535.1.repeatMasker.out.gz
+
+  # Folder for the reference FASTA (b6_t2t_mm39XYM.fa), its index and its pbmm2 index
+  out_dir: /insomnia001/depts/pas_lab/projects/mice_neurons/T2T_ref_genome
+
+
+# ── PacBio HiFi reads [DNA sequencing and read processing] ───────────────────
+# One HiFi BAM per library, from CCS by strand (a forward and a reverse strand
+# consensus read per molecule), and the animal the library comes from. Libraries
+# of the same animal count as one animal for the shared sites of the masked
+# sites and for the variants of the same animal.
+samples:
+  12wk_male_ctx_1_4kb:
+    bam:    /insomnia001/depts/pas_lab/projects/mice_neurons/samples/12wk_male_ctx_1_4kb/1_A01/hifi_reads/m84112_251009_234101_s2.hifi_reads.bam
+    animal: 12wk_male_ctx_1
+  12wk_male_ctx_2_4kb:
+    bam:    /insomnia001/depts/pas_lab/projects/mice_neurons/samples/12wk_male_ctx_2_4kb/1_B01/hifi_reads/m84112_251010_014354_s3.hifi_reads.bam
+    animal: 12wk_male_ctx_2
+  48wk_male_ctx_1_4kb:
+    bam:    /insomnia001/depts/pas_lab/projects/mice_neurons/samples/48wk_male_ctx_1_4kb/1_C01/hifi_reads/m84112_251010_034638_s4.hifi_reads.bam
+    animal: 48wk_male_ctx_1
+  48wk_male_ctx_2_4kb:
+    bam:    /insomnia001/depts/pas_lab/projects/mice_neurons/samples/48wk_male_ctx_2_4kb/1_A01/hifi_reads/m84112_260126_232511_s1.hifi_reads.bam
+    animal: 48wk_male_ctx_2
+  60wk_male_ctx_2_4kb:
+    bam:    /insomnia001/depts/pas_lab/projects/mice_neurons/samples/60wk_male_ctx_2_4kb/1_B01/hifi_reads/m84112_260127_012803_s2.hifi_reads.bam
+    animal: 60wk_male_ctx_2
+  60wk_male_ctx_2_10kb:
+    bam:    /insomnia001/depts/pas_lab/projects/mice_neurons/samples/60wk_male_ctx_2_10kb/1_C01/hifi_reads/m84112_260127_033055_s3.hifi_reads.bam
+    animal: 60wk_male_ctx_2
+  72wk_male_ctx_1_4kb:
+    bam:    /insomnia001/depts/pas_lab/projects/mice_neurons/samples/72wk_male_ctx_1_4kb/1_A01/hifi_reads/m84112_250924_224128_s1.hifi_reads.bam
+    animal: 72wk_male_ctx_1
+  72wk_male_ctx_2_4kb:
+    bam:    /insomnia001/depts/pas_lab/projects/mice_neurons/samples/72wk_male_ctx_2_4kb/1_D01/hifi_reads/m84112_251010_054924_s1.hifi_reads.bam
+    animal: 72wk_male_ctx_2
+
+
+# ── Chromatin accessibility [Chromatin accessibility] ────────────────────────
+# snATAC-seq of the mouse brain atlas of Sziraki et al. 2023 (GEO GSE212606,
+# sample GSM6538357): a folder with the three files
+#   GSM6538357_ATAC_cell_annotation.csv.gz
+#   GSM6538357_ATAC_peak_annotation.csv.gz
+#   GSM6538357_ATAC_peak_count.txt.gz
+# from https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM6538nnn/GSM6538357/suppl/
+sziraki_atac_dir: /path/to/GSE212606/GSM6538357
+
+# liftOver chain from the T2T assembly to GRCm39 (UCSC GenArk hub):
+#   https://hgdownload.soe.ucsc.edu/hubs/GCA/964/188/535/GCA_964188535.1/liftOver/GCA_964188535.1ToMm39.over.chain.gz
+liftover_chain: /insomnia001/depts/pas_lab/users/ss6917/mice_neurons/mapped_to_T2T/genomic_regions/ref/GCA_964188535.1ToMm39.over.chain.gz
+
+
+# ── Analyses of this study (analyses/) ───────────────────────────────────────
+# The short and the long library of the same animal compared site by site
+# [Concordance between the short and long libraries of the 60-week-old mouse]
+concordance_libraries: [60wk_male_ctx_2_4kb, 60wk_male_ctx_2_10kb]
+
+
+# ── Output ───────────────────────────────────────────────────────────────────
+# Folder for every output of the pipeline (workflow/README.md lists them).
+# The aligned BAMs take ~250 GB per short library and ~400 GB for the long one.
+results_dir: results
+
+
+# ── Read filters [Variant calling and filtering: Read filters] ───────────────
+# Read length: within the mean +/- 2 s.d. of the library (read_length_bounds.py;
+# Supplementary Fig. 2).
+min_mapping_quality: 60        # primary alignments with this mapping quality
+min_passes: 5                  # passes (np) of a strand consensus read (Supplementary Fig. 13)
+max_divergence: 0.01           # 1 - M / (M + X + I + D) of the alignment
+
+
+# ── Molecule filters [Variant calling and filtering: Molecule filters] ───────
+# Library thresholds in Supplementary Table 3.
+strand_length_difference_percentile: 99     # |forward - reverse read length|
+drop_chimeric_molecules: true               # either read has a supplementary alignment
+strand_alignment_nonoverlap_percentile: 99  # sites covered by only one of the two alignments
+
+
+# ── Base filters [Variant calling and filtering: Base filters] ───────────────
+min_base_quality: 40
+min_subread_matches: 5             # sm, subreads matching the base
+min_subread_match_fraction: 0.8    # sm / (sm + sx) must be above this
+indel_distance: 3                  # bases within this distance of an insertion or deletion are not used
+
+# Bases at each end of a read whose base quality is set to 0 (ext): 0 gives the
+# untrimmed reads and 450 the trimmed reads (see Supplementary Figs. 3-4 for how
+# 450 was chosen). The post-calling scripts expect these two values.
+read_end_trim: [0, 450]
+
+
+# ── Masked sites [Variant calling and filtering: Masked sites] ───────────────
+repeat_classes: [Simple_repeat, Low_complexity, "Satellite*"]   # RepeatMasker classes; * matches a prefix
+min_animals_shared: 2          # sites with a variant called in this many animals are masked too
+
+
+# ── Coverage filter [Variant calling and filtering: Coverage filter] ─────────
+# Sites with an untrimmed coverage from min_coverage to the library's 99th
+# percentile of untrimmed coverage.
+min_coverage: 10
+# Minimum coverages at which callable bps are also written (Supplementary Fig. 11 uses 5-10)
+min_coverages_untrimmed: [5, 6, 7, 8, 9, 10]
+min_coverages: [5, 6, 7, 8, 9, 10, 11, 12]

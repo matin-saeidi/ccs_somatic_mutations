@@ -1,0 +1,9 @@
+# pipeline outputs and logs
+results/
+logs/
+.snakemake/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/

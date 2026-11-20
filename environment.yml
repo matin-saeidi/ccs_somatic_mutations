@@ -1,0 +1,12 @@
+# Conda environment to run the pipeline (Snakemake and its SLURM executor).
+#   conda env create -f environment.yml
+#   conda activate snakemake
+# The rules run in workflow/envs/tools.yaml, created by Snakemake.
+name: snakemake
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.12.8
+  - snakemake=8.27.1
+  - snakemake-executor-plugin-cluster-generic=1.0.9

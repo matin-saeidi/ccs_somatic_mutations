@@ -1,0 +1,102 @@
+# =============================================================================
+# Snakefile — somatic point mutations from PacBio HiFi reads (CCS by strand)
+#
+# Runs the steps of workflow/rules/, in this order:
+#   reference.smk                reference genome and its indexes
+#   alignment.smk                strand consensus reads aligned to the reference
+#   read_tables.smk              passes and length of every strand consensus read
+#   filter_thresholds.smk        library thresholds of the read and molecule filters
+#   variant_calling.smk          variants, mismatches and coverage per library x autosome
+#   call_tables.smk              variant and mismatch tables per library
+#   masked_sites.smk             masked sites
+#   callable_bps.smk             coverage filter and callable bps
+#   mutation_tables.smk          every variant with the filters as columns;
+#                                somatic mutation candidates
+#   read_end_errors.smk          callable bps and variants by distance from the read end
+#   sequencing_errors.smk        mismatches between strand consensus reads; subread errors
+#   chromatin_accessibility.smk  accessible chromatin and its callable bps
+#
+# Inputs, output folder and parameters: config/config.yaml.
+#
+# Run from the repository root:
+#   snakemake --profile profiles/slurm -n     # dry run
+#   snakemake --profile profiles/slurm
+# One step and what it needs, e.g.:
+#   snakemake --profile profiles/slurm variant_calling
+# =============================================================================
+
+configfile: "config/config.yaml"
+
+SCRIPTS = workflow.basedir + "/scripts"
+ENV     = "../envs/tools.yaml"              # conda environment of every rule
+
+RESULTS = config["results_dir"]
+LOGS    = RESULTS + "/logs"
+SAMPLES = list(config["samples"])
+ANIMAL  = {s: config["samples"][s]["animal"] for s in SAMPLES}   # library -> animal
+ANIMALS_ARG = " ".join(f"{s}={a}" for s, a in ANIMAL.items())
+CHROMS  = [f"T2T{i}" for i in range(1, 20)]   # T2T autosomes; every other contig is a decoy
+EXTS    = config["read_end_trim"]
+QUAL    = config["min_base_quality"]
+
+# Reference
+REF_DIR = config["reference"]["out_dir"]
+REF     = REF_DIR + "/b6_t2t_mm39XYM.fa"
+REF_FAI = REF + ".fai"
+REF_MMI = REF_DIR + "/b6_t2t_mm39XYM.mmi"
+GCA_FAI = config["reference"]["t2t_fasta"] + ".fai"
+RM_OUT  = config["reference"]["repeatmasker"]
+
+# Output folders
+BAM_DIR    = RESULTS + "/alignment"
+READ_DIR   = RESULTS + "/read_tables"
+THR_DIR    = RESULTS + "/filter_thresholds"
+CALL_DIR   = RESULTS + "/variant_calling"
+TABLE_DIR  = RESULTS + "/call_tables"
+MASK_DIR   = RESULTS + "/masked_sites"
+CALLABLE   = RESULTS + "/callable_bps"
+MUT_TABLES = RESULTS + "/mutation_tables"
+CAND_DIR   = RESULTS + "/somatic_mutation_candidates"
+EDGE_DIR   = RESULTS + "/read_end_errors"
+MISM_DIR   = RESULTS + "/strand_mismatches"
+SUBR_DIR   = RESULTS + "/subread_errors"
+ACC_DIR    = RESULTS + "/chromatin_accessibility"
+
+MASK = MASK_DIR + "/excluded_regions.bed"
+
+wildcard_constraints:
+    sample = "|".join(sorted(SAMPLES, key=len, reverse=True)),
+    chrom  = r"T2T\d+",
+    ext    = r"\d+",
+    qual   = r"\d+",
+
+
+include: "rules/reference.smk"
+include: "rules/alignment.smk"
+include: "rules/read_tables.smk"
+include: "rules/filter_thresholds.smk"
+include: "rules/variant_calling.smk"
+include: "rules/call_tables.smk"
+include: "rules/masked_sites.smk"
+include: "rules/callable_bps.smk"
+include: "rules/mutation_tables.smk"
+include: "rules/read_end_errors.smk"
+include: "rules/sequencing_errors.smk"
+include: "rules/chromatin_accessibility.smk"
+
+
+rule all:
+    default_target: True
+    input:
+        rules.reference.input,
+        rules.alignment.input,
+        rules.read_tables.input,
+        rules.filter_thresholds.input,
+        rules.variant_calling.input,
+        rules.call_tables.input,
+        rules.masked_sites.input,
+        rules.callable_bps.input,
+        rules.mutation_tables.input,
+        rules.read_end_errors.input,
+        rules.sequencing_errors.input,
+        rules.chromatin_accessibility.input,

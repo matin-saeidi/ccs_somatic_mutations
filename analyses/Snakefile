@@ -1,0 +1,51 @@
+# =============================================================================
+# Snakefile — analyses of this study, on the outputs of the pipeline
+#
+#   library_concordance.smk   the short and the long library of the 60-week-old
+#                             mouse, site by site [Methods: Concordance between the
+#                             short and long libraries; Supplementary Fig. 8]
+#   animal_relationships.smk  sites and callable length of the tree of the animals
+#                             [Methods: Relationships among the animals;
+#                             Supplementary Fig. 15, Supplementary Table 7]
+#
+# Inputs: the outputs of workflow/Snakefile, in config.yaml results_dir.
+# Run from the repository root, after the pipeline:
+#   snakemake -s analyses/Snakefile --profile profiles/slurm
+# =============================================================================
+
+configfile: "config/config.yaml"
+
+SCRIPTS = workflow.basedir + "/scripts"
+ENV     = "../../workflow/envs/tools.yaml"
+
+RESULTS = config["results_dir"]
+LOGS    = RESULTS + "/logs"
+SAMPLES = list(config["samples"])
+CHROMS  = [f"T2T{i}" for i in range(1, 20)]
+REF_FAI = config["reference"]["out_dir"] + "/b6_t2t_mm39XYM.fa.fai"
+
+# Pipeline outputs
+CALL_DIR   = RESULTS + "/variant_calling"
+MASK_DIR   = RESULTS + "/masked_sites"
+CALLABLE   = RESULTS + "/callable_bps"
+MUT_TABLES = RESULTS + "/mutation_tables"
+UNTRIMMED_TABLE = MUT_TABLES + "/untrimmed_reads/mutations_untrimmed_reads.tsv"
+TRIMMED_TABLE   = MUT_TABLES + "/450b_trimmed_reads/mutations_450b_trimmed_reads.tsv"
+
+# Outputs
+CONC_DIR = RESULTS + "/library_concordance"
+TREE_DIR = RESULTS + "/animal_relationships"
+
+wildcard_constraints:
+    chrom = r"T2T\d+",
+
+
+include: "rules/library_concordance.smk"
+include: "rules/animal_relationships.smk"
+
+
+rule all:
+    default_target: True
+    input:
+        rules.library_concordance.input,
+        rules.animal_relationships.input,

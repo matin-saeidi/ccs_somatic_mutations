@@ -1,0 +1,37 @@
+# Snakemake profile for a SLURM cluster (the one we used).
+#   snakemake --profile profiles/slurm
+# Replace account and partition with yours. Each rule sets time, cpus_per_task
+# and mem_per_cpu; the values below are the defaults of rules that set none.
+executor: cluster-generic
+cluster-generic-submit-cmd:
+  mkdir -p logs/{rule} &&
+  sbatch
+    --account={resources.account}
+    --time={resources.time}
+    --ntasks={resources.ntasks}
+    --partition={resources.partition}
+    --cpus-per-task={resources.cpus_per_task}
+    --mem-per-cpu={resources.mem_per_cpu}
+    --job-name=smk-{rule}-{wildcards}
+    --output=logs/{rule}/{rule}-{wildcards}-%j.out
+    --error=logs/{rule}/{rule}-{wildcards}-%j.err
+
+default-resources:
+  account: "pas_lab"            # your SLURM account
+  partition: "short"            # your SLURM partition
+  time: "'11:59:00'"
+  ntasks: 1
+  cpus_per_task: 1
+  mem_per_cpu: "500M"
+
+jobs: 60                        # jobs submitted at once
+restart-times: 0
+max-jobs-per-second: 20
+max-status-checks-per-second: 1
+local-cores: 1
+latency-wait: 600
+keep-going: True
+rerun-incomplete: True
+printshellcmds: True
+scheduler: greedy
+use-conda: True

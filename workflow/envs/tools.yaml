@@ -1,0 +1,17 @@
+# Conda environment of the pipeline rules (Snakemake creates it with --use-conda).
+# Versions are those we used.
+name: ccs_somatic_mutations_tools
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11.14
+  - numpy=2.4.2
+  - pandas=3.0.2
+  - pysam=0.23.3
+  - pbmm2=26.1.99
+  - samtools=1.22.1
+  - htslib=1.23.1
+  - bedops=2.4.42
+  - pigz
+  - gawk
